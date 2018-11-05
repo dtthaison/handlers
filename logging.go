@@ -21,8 +21,10 @@ type LogFormatterParams struct {
 	Request    *http.Request
 	URL        url.URL
 	TimeStamp  time.Time
+	Duration   time.Duration
 	StatusCode int
 	Size       int
+	Body       []byte
 }
 
 // LogFormatter gives the signature of the formatter function passed to CustomLoggingHandler
@@ -38,9 +40,9 @@ type loggingHandler struct {
 }
 
 func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	t := time.Now()
 	logger := makeLogger(w)
 	url := *req.URL
+	t := time.Now()
 
 	h.handler.ServeHTTP(logger, req)
 
@@ -48,8 +50,10 @@ func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		Request:    req,
 		URL:        url,
 		TimeStamp:  t,
+		Duration:   time.Now().Sub(t),
 		StatusCode: logger.Status(),
 		Size:       logger.Size(),
+		Body:       logger.Body(),
 	}
 
 	h.formatter(h.writer, params)
@@ -76,6 +80,7 @@ type commonLoggingResponseWriter interface {
 	http.Flusher
 	Status() int
 	Size() int
+	Body() []byte
 }
 
 const lowerhex = "0123456789abcdef"

@@ -49,6 +49,7 @@ type responseLogger struct {
 	w      http.ResponseWriter
 	status int
 	size   int
+	body   []byte
 }
 
 func (l *responseLogger) Header() http.Header {
@@ -58,6 +59,7 @@ func (l *responseLogger) Header() http.Header {
 func (l *responseLogger) Write(b []byte) (int, error) {
 	size, err := l.w.Write(b)
 	l.size += size
+	l.body = b
 	return size, err
 }
 
@@ -72,6 +74,10 @@ func (l *responseLogger) Status() int {
 
 func (l *responseLogger) Size() int {
 	return l.size
+}
+
+func (l *responseLogger) Body() []byte {
+	return l.body
 }
 
 func (l *responseLogger) Flush() {
